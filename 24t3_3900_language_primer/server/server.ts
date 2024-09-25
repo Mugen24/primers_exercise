@@ -146,13 +146,13 @@ app.post('/api/groups', async (req: Request, res: Response) => {
     where groupz.name == $groupName
   `, {$groupName: req.body.groupName.toLowerCase()})
 
-  console.log(isGroupExists)
-
   if (isGroupExists) {
     console.log("name already exists")
     res.status(403).send("name already exists")
     return 
   }
+
+
   console.log(req.body.members)
   console.log(req.body.members.length)
 
@@ -161,6 +161,22 @@ app.post('/api/groups', async (req: Request, res: Response) => {
     res.status(403).send("needs at least one member")
     return 
   }
+  
+  // Check if student exists
+  for (let student_id of req.body.members) {
+    const isStudentExists = await db.get(`--sql
+      select * from student
+      where student.id == $student_id
+    `, {$student_id: student_id})
+
+    console.log(isStudentExists)
+    if (!isStudentExists) {
+      console.log("not valid student")
+      res.status(403).send("not valid student")
+      return
+    }
+  }
+
 
   const {group_id} = await db.get(`--sql
 
